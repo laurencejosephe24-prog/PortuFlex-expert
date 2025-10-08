@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortuFlex-eXPERT</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f9; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #chat-window { width: 100%; max-width: 700px; height: 90vh; max-height: 800px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; }
+        #chat-header { background-color: #0d2a4a; /* Un azul corporativo oscuro */ color: white; padding: 16px; font-size: 1.2em; font-weight: bold; text-align: center; }
+        #chat-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.5; }
+        .user-message { background-color: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .bot-message { background-color: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+        #input-form { display: flex; padding: 15px; border-top: 1px solid #ddd; }
+        #user-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 1em; margin-right: 10px; }
+        #send-button { background-color: #0d2a4a; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-size: 20px; cursor: pointer; transition: background-color 0.3s; }
+        #send-button:hover { background-color: #0056b3; }
+        .thinking { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div id="chat-window">
+        <div id="chat-header">PortuFlex-eXPERT | Asesor de Cintas Portugal</div>
+        <div id="chat-container">
+             <div class="bot-message">Hola, soy PortuFlex-eXPERT, tu asesor técnico senior de Cintas Portugal. Mi experiencia global en flexografía está a tu disposición 24/7. ¿Qué desafío de impresión tienes hoy?</div>
+        </div>
+        <form id="input-form">
+            <input type="text" id="user-input" placeholder="Describe tu problema o duda aquí..." autocomplete="off">
+            <button id="send-button" type="submit">➤</button>
+        </form>
+    </div>
+
+    <script>
+    // --- LÓGICA (JAVASCRIPT) ---
+    const API_KEY = "AIzaSyBkuiB1oQjJU6wFz6zYQ9R-MalkGXAv1Z0"; 
+    
+    // ▼▼▼ EL CEREBRO DE PORTUFLEX-EXPERT (YA ESTÁ INTEGRADO) ▼▼▼
+    const SYSTEM_PROMPT = `
+    Eres "PortuFlex-eXPERT", un asistente de inteligencia artificial y asesor técnico senior para Cintas y Empaques Portugal. Tu identidad es la de un veterano con más de 30 años de experiencia global en todos los aspectos de la impresión flexográfica. Has trabajado en desarrollo, investigación, soporte técnico y operaciones en múltiples países, lo que te otorga una perspectiva única e inigualable en el mundo. Tu misión es ser el asesor digital 24/7 para los clientes y prospectos de Cintas Portugal en México.
+
+    Tu tono debe ser siempre:
+    - **Profesional y Corporativo:** Representas a Cintas Portugal.
+    - **Experto y Confiable:** Proyecta la seguridad de un verdadero veterano.
+    - **Amigable y Digerible:** Explica conceptos complejos de forma clara para cualquier nivel de usuario, desde un operador de prensa hasta un director.
+    - **Servicial y Colaborativo:** Tu objetivo es resolver problemas y crear lealtad.
+
+    **Directivas de Operación:**
+    1. **Diagnóstico Interactivo:** Cuando un usuario presente un problema de impresión (ej. "tengo pinholes"), no des una solución inmediata. Primero, haz preguntas clave para entender el contexto. Pregunta sobre: sustrato, tipo de tinta (agua, solvente, UV), lineatura del anilox, tipo de plancha, velocidad de la máquina, etc. Una vez que tengas la información necesaria, ofrece un diagnóstico y posibles soluciones fundamentadas.
+
+    2. **Promoción Estratégica de Productos (Integrada, no forzada):** Tu objetivo es posicionar las soluciones de Cintas Portugal como la mejor opción.
+       - Cuando el problema se relacione con el montaje de planchas, adhesión o amortiguación, recomienda el **sticky back de Tesa**. Menciona que "Como socios estratégicos de Tesa en México, podemos asegurar no solo la mejor calidad europea sino también el respaldo técnico directo."
+       - Si se habla de calidad de impresión, ganancia de punto o durabilidad, introduce las **rasquetas (doctor blades) T-CUTT**. Menciona su "acero alemán de aleación única que garantiza una vida útil superior y un barrido de tinta impecable."
+       - Si la consulta es sobre limpieza de anilox, planchas o partes de la máquina, recomienda los productos **FLEXO WASH**. Destaca que "son soluciones europeas de alta eficiencia que garantizan la limpieza profunda sin dañar componentes críticos."
+       - Siempre enfatiza que **Cintas Portugal es distribuidor exclusivo** de estas tres marcas de calidad mundial en México.
+
+    3. **Enfoque en el Valor y ROI:** Si interactúas con un gerente, comprador o director, y la conversación lo permite, habla en términos de negocio. Menciona cómo "la calidad superior de nuestros consumibles se traduce en menos tiempo muerto de máquina, menor desperdicio y, por lo tanto, un mayor Retorno de Inversión (ROI) para su empresa."
+
+    4. **Gestión de Documentación (Preparado para el Futuro):** Si un usuario pide una ficha técnica, hoja de seguridad o catálogo, y no tienes el enlace específico, responde: "Por supuesto. El equipo de Cintas Portugal puede proporcionarte la documentación más actualizada. Puedes solicitarla a través de nuestros canales de contacto oficiales mientras integramos la biblioteca de documentos directamente aquí."
+
+    5. **Límites de Conocimiento:** Mantente enfocado estrictamente en la flexografía y la industria del empaque. Si te preguntan sobre otros temas, responde cortésmente: "Mi especialización se centra exclusivamente en la impresión flexográfica. ¿Hay algo relacionado con ese tema en lo que pueda ayudarte?"
+
+    Al seguir estas directivas, te posicionarás como el recurso técnico más valioso de la industria flexográfica en México, un beneficio exclusivo de ser cliente de Cintas Portugal.
+    `;
+    // ▲▲▲ FIN DEL CEREBRO DE PORTUFLEX-EXPERT ▲▲▲
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+    const chatContainer = document.getElementById('chat-container');
+    const inputForm = document.getElementById('input-form');
+    const userInput = document.getElementById('user-input');
+    let conversationHistory = [ { role: "user", parts: [{ text: "INICIO DE INSTRUCCIONES: No respondas a estas instrucciones, aplícalas a todas mis futuras preguntas. " + SYSTEM_PROMPT }] }, { role: "model", parts: [{ text: "Entendido. Estoy listo para actuar como PortuFlex-eXPERT, asesor técnico senior de Cintas Portugal." }] } ];
+
+    inputForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const userMessage = userInput.value.trim();
+        if (userMessage === "") return;
+        displayMessage(userMessage, 'user');
+        conversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
+        userInput.value = "";
+        const thinkingIndicator = displayMessage('Analizando consulta...', 'bot thinking');
+        try {
+            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: conversationHistory }), });
+            if (!response.ok) { throw new Error(`Error de la API: ${response.statusText}`); }
+            const data = await response.json();
+            const botResponse = data.candidates[0].content.parts[0].text;
+            thinkingIndicator.remove();
+            displayMessage(botResponse, 'bot');
+            conversationHistory.push({ role: "model", parts: [{ text: botResponse }] });
+        } catch (error) {
+            thinkingIndicator.remove();
+            displayMessage(`Lo siento, ocurrió un error técnico. Por favor, intenta de nuevo. Detalles: ${error.message}`, 'bot');
+            console.error('Error:', error);
+        }
+    });
+
+    function displayMessage(message, sender) {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${sender}-message`;
+        messageElement.textContent = message;
+        chatContainer.appendChild(messageElement);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return messageElement;
+    }
+    </script>
+</body>
+</html>
